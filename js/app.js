@@ -1,16 +1,17 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Router, Route, Link, browserHistory } from 'react-router'
+import marked from 'marked';
+import _ from 'underscore';
+import $ from 'jquery';
+
 window.onload = function () {
-
-var React = require( 'react' );
-var ReactDOM = require( 'react-dom' );
-var marked = require( 'marked' );
-var $ = require( 'jquery' );
-
 
 var ViewHeader = React.createClass({
   render: function() {
     return (
       <header className="page-header">
-        <h1 id="siteName"><a href="/">{this.props.title}</a></h1>
+        <h1 id="siteName"><a href="/">{}</a></h1>
         <h2 id="siteDesription">{this.props.description}</h2>
       </header>
     );
@@ -18,23 +19,59 @@ var ViewHeader = React.createClass({
 });
 
 var ViewMainNavLink = React.createClass({
+
   render: function() {
-    return (
-      <li>
-        <a href="{this.props.slug}">
-          {this.props.title}
-        </a>
-      </li>
-    );
+    var slug = _.filter(
+      this.props.post.url.split('/'),
+      function(url) {
+        return url !== '' &&
+               url !== 'http:' &&
+               url !== 'www.example.dev'
+      })
+      .join('/');
+      if( slug === 'home' ) slug = '/';
+      return (
+        <li key={this.props.post.id}>
+          <a
+            href={slug}
+            onClick={this.handleLink}
+          >
+            {this.props.post.title}
+          </a>
+        </li>
+      );
   }
 });
 
 var ViewMainNav = React.createClass({
+  returnSlugs: function( url ) {
+    if ( url !== '' &&
+         url !== 'http:' &&
+         url !== 'www.example.dev'
+       ) {
+        return url
+    }
+
+  },
   render: function(){
+    var menuItems = this.props.mainMenuItems.filter( function( menuItem ) {
+      return menuItem.parent === 0;
+    });
+    console.log( menuItems );
+    menuItems = this.props.mainMenuItems.map( function( menuItem ) {
+      return (
+        <ViewMainNavLink
+          parent={menuItem.parent}
+          key={menuItem.id}
+          post={menuItem}
+          onClick={this.props.onClick}
+        />
+      );
+    });
     return (
       <nav id="mainNav">
         <ul>
-          <ViewMainNavLink title="{this.props.title}" slug="{this.props.slug}" />
+          {menuItems}
         </ul>
       </nav>
     );
@@ -56,20 +93,24 @@ var ViewSidebar = React.createClass({
 
 var ViewContent = React.createClass({
   render: function() {
-    return (
-      <div className="content">
-
-        <div className="primary">
-          <h2 id="pageTitle">Page Title</h2>
-          <div id="pageContent">
-            <p>Reprehenderit sit sunt nisi excepteur deserunt officia ipsum eu reprehenderits deserunt aliqua incididunt cillum dolore.</p>
-            <p>Dolor sit amet, consectetur adipisicing elit. Makingsum Lorem look coolsum. Sit temporibus sunt doloremque enim alias pariatur debitis dolorum excepturi fugiat assumenda at, totam delectus, possimus reprehenderit earum aliquid nihil, esse voluptatem.</p>
+    var currentPost = this.props.currentPost[0];
+    if ( !_.isUndefined( currentPost ) ) {
+      return (
+        <div className="content">
+          <div className="primary">
+            <h2 id="pageTitle" key="title">{currentPost.title.rendered}</h2>
+            <div
+              id="pageContent"
+              dangerouslySetInnerHTML={{ __html: currentPost.content.rendered}}
+            />
           </div>
-        </div>
 
-        <ViewSidebar />
-      </div>
-    );
+          <ViewSidebar />
+        </div>
+      )
+    } else {
+      return null;
+    }
   }
 });
 
@@ -95,60 +136,190 @@ var AdminNewPostBtn = React.createClass({
 
 var AdminListingLink = React.createClass({
   render: function() {
+    if ( this.props.post.type === 'post' ) {
+      return (
+        <li>
+          <Link to={'blog/' + this.props.post.slug} key={this.props.post.id}>
+            {this.props.post.title.rendered}
+          </Link>
+        </li>
+      );
+    } else {
+      return (
+        <li>
+          <Link to={this.props.post.slug} key={this.props.post.id}>
+            {this.props.post.title.rendered}
+          </Link>
+        </li>
+      );
+    }
+  }
+});
+
+var AdminSecondaryNavLink = React.createClass({
+  render: function() {
+    if( this.props.currentMenu === 'edit' ) {
+      return (
+        <span>
+          <a href="#" onClick="">
+            Title
+          </a>
+        </span>
+      );
+
+    } else {
+      return (
+        <span>Title</span>
+      );
+    }
+  }
+});
+
+var AdminHomeLink = React.createClass({
+  render: function() {
     return (
-      <li>
-        <a href={this.props.slug}>
-          {this.props.title}
-        </a>
-      </li>
+      <Link to='/' className="go-home">
+        Admin
+      </Link>
     );
   }
 });
 
-var AdminListingNav = React.createClass({
+var AdminMenu = React.createClass({
   render: function() {
-    var postList = this.props.data.map( function( post ) {
-      console.log( post );
-      return (
-        <AdminListingLink id={post.id} slug={post.slug} title={post.title.rendered} />
-      );
-    });
     return (
-      <nav id="secondary" className="active">
-        <h3>
-          <a className="go-home" href="#">Admin</a> /
-          <span>Title</span>
-        </h3>
-        <AdminNewPostBtn />
+      <h3>
+        <AdminHomeLink />
+        { ' / ' }
+        <AdminSecondaryNavLink currentMenu={this.props.currentMenu} />
+      </h3>
+    );
+  }
+});
+
+var AdminDeletePost = React.createClass({
+  render: function() {
+    return (
+      <p id="deletePost">
+        <a
+          href="#"
+          onClick=""
+        >Delete Post</a>
+      </p>
+    );
+  }
+});
+
+var AdminNavView = React.createClass({
+  render: function() {
+    if( this.props.currentMenu === 'edit' ) {
+      return (
+        <form>
+          <ul>
+            <li>
+              <label htmlFor="editTitle">Title</label>
+              <input type="text" className="editTitle" id="editTitle" />
+            </li>
+            <li>
+              <label htmlFor="editContent">Content</label>
+              <textarea name="editContent" id="editContent"></textarea>
+            </li>
+            <li>
+                <button
+                  id="editUpdateBtn"
+                  type="submit"
+                  value="Update"
+                  className="btn primary">
+                  Update
+                </button>
+            </li>
+          </ul>
+        </form>
+      );
+    } else if ( this.props.currentMenu === 'secondary' ) {
+      var postList = this.props.data.map( function( post ) {
+        return (
+          <AdminListingLink
+            key={post.id}
+            post={post}
+          />
+        );
+      });
+      return (
         <ul className="accordion">
           {postList}
         </ul>
-      </nav>
+      );
+    } else {
+      return (
+        <ul className="accordion">
+          <li>
+            <Link to="/">
+              Where am I?
+            </Link>
+          </li>
+        </ul>
+      );
+    }
+  }
+});
+
+
+var Admin = React.createClass({
+  getInitialState: function() {
+    return (
+        {currentMenu: 'edit'}
+    );
+  },
+  render: function() {
+    return (
+      <section id="editor" className={this.props.isHidden ? "hidden" : ""}>
+        <h1>ReactPress</h1>
+        <nav id={this.state.currentMenu} className="active">
+          <AdminMenu
+            currentMenu={this.state.currentMenu}
+          />
+          <AdminNewPostBtn
+            currentMenu={this.state.currentMenu}
+          />
+          <AdminNavView
+            currentMenu={this.state.currentMenu}
+            data={this.props.posts}
+          />
+        </nav>
+        {/*<AdminView data={this.props.data} currentMenu={this.props.currentMenu} />*/}
+      </section>
     );
   }
 });
 
-var AdminEditor = React.createClass({
+var AdminToggle = React.createClass({
+
   render: function() {
     return (
-      <section id="editor">
-        <h1>ReactPress</h1>
-        <AdminListingNav data={this.props.data} />
-      </section>
+      <div id="editorToggle" className={this.props.isHidden ? "hidden" :""}>
+        <a
+          href="#"
+          onClick={this.props.onClick}
+        >
+          <span className="arrow"></span>
+          <label>Hide Editor</label>
+        </a>
+      </div>
     );
   }
 });
 
 var ReactPress = React.createClass({
 
-  loadPostsFromAPI: function() {
+  loadMenuFromAPI: function() {
     $.ajax({
-      url: this.props.url,
+      url: 'http://www.example.dev/wp-json/wp-api-menus/v2/menus/2',
       dataType: 'json',
       cache: false,
       success: function(data) {
-        console.log( data );
-        this.setState({data: data});
+        this.setState({mainMenu: data.items});
+        console.log( 'loadMenuFromAPI: state set' );
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
@@ -156,38 +327,151 @@ var ReactPress = React.createClass({
     });
   },
 
+  loadPagesFromAPI: function() {
+    $.ajax({
+      url: 'http://www.example.dev/wp-json/wp/v2/pages',
+      dataType: 'json',
+      cache: false,
+      success: function(data) {
+        this.setState({pages: data});
+        console.log( 'loadPagesFromAPI: state set' );
+        var currentSlug = this.props.params.slug;
+        if ( _.isUndefined( currentSlug ) ) currentSlug = 'home';
+        var currentPost = _.filter( data, function( page ) {
+            return page.slug == currentSlug;
+        });
+        if ( !_.isEmpty( currentPost[0] ) ) {
+          this.setState( { currentPost: currentPost } );
+          console.log( 'loadPagesFromAPI: state set' );
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+
+  loadPostsFromAPI: function() {
+    $.ajax({
+      url: 'http://www.example.dev/wp-json/wp/v2/posts',
+      dataType: 'json',
+      cache: false,
+      success: function(posts) {
+        this.setState({posts: posts});
+        console.log( 'loadPostsFromAPI: state set' );
+        var currentSlug = this.props.params.slug;
+        var currentPost = _.filter( posts, function( post ) {
+            return post.slug == currentSlug;
+        });
+        if ( !_.isEmpty( currentPost ) ) {
+          this.setState({currentPost: currentPost})
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+
+  setCurrentPost: function( slug ) {
+    if ( _.isUndefined( slug )  ) slug = "home";
+    var newPost = {};
+    newPost = _.filter( this.state.pages, function( post ) {
+      return post.slug === slug;
+    });
+    //this.setState( { currentPost : newPost } );
+    if( _.isEmpty( newPost ) ) {
+      newPost = _.filter( this.state.posts, function( post ) {
+          return post.slug === slug;
+      });
+    }
+    console.log( 'setCurrentPost: set state' );
+    //console.log( newPost[0].title.rendered );
+  },
+
   getInitialState: function() {
-    return { data: [] };
+    return {
+      posts: [],
+      pages: [],
+      mainMenu: [],
+      hidden: false,
+      currentPost: {}
+    };
   },
 
   componentDidMount: function() {
+    var slug = this.props.params.slug;
     this.loadPostsFromAPI();
-    setInterval(
-      this.loadPostsFromAPI,
-      this.props.pollInterval
-    );
+    this.loadPagesFromAPI();
+    this.loadMenuFromAPI();
+    this.setCurrentPost( slug );
+    // setInterval(
+    //   this.loadPostsFromAPI,
+    //   this.props.pollInterval
+    // );
+  },
+
+  componentDidUpdate: function() {
+    var newSlug = this.props.params.slug;
+    this.setCurrentPost( newSlug );
+    if ( !_.isEmpty( this.state.currentPost ) ) {
+    }
+  },
+
+  handleMainNavClick: function( event ) {
+    event.preventDefault();
+    this.refs.userInput.getDOMNode().value = '';
+    this.context.router.transitionTo('/');
+    this.setCurrentPost( newSlug );
+  },
+
+
+  handleAdminToggle: function() {
+      this.setState( { hidden : !this.state.hidden } );
+      console.log( 'handleAdminToggle: state set' );
   },
 
   render: function() {
-
     return (
       <section id="wrapper">
-        <AdminEditor data={this.state.data} />
+        <Admin
+          posts={this.state.posts}
+          pages={this.state.pages}
+          isHidden={this.state.hidden}
+          currentSlug={this.props.params.slug}
+        />
         <section id="view">
           <div className="container">
-            <ViewHeader data={this.state.data} />
-            <ViewMainNav data={this.state.data} />
-            <ViewContent data={this.state.data} />
+            <ViewHeader
+              currentPost={this.state.currentPost}
+            />
+            <ViewMainNav
+              mainMenuItems={this.state.mainMenu}
+              onClick={this.handleMainNavClick}
+            />
+            <ViewContent
+              currentPost={this.state.currentPost}
+              currentSlug={this.props.params.slug}
+            />
             <ViewFooter />
           </div>
         </section>
+        <AdminToggle
+          isHidden={this.state.hidden}
+          onClick={this.handleAdminToggle}
+        />
       </section>
     );
   }
 
 });
 ReactDOM.render(
-  <ReactPress url="http://www.example.dev/wp-json/wp/v2/posts" pollInterval={2000} />,
+  <Router >
+    <Route path="/" component={ReactPress}>
+      <Route path="blog/:slug" component={ReactPress} />
+      <Route path=":slug" component={ReactPress} />
+    </Route>
+  </Router>,
   document.getElementById('reactpress')
 );
 

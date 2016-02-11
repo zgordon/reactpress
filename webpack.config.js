@@ -16,4 +16,7 @@ module.exports = {
       }
     ]
   },
+  historyApiFallback: {
+    index: '/'
+  }
 };
