@@ -1,0 +1,20 @@
+[
+  {
+    "id":991,
+    "date":"2016-01-09T22:05:09",
+    "modified":"2016-01-09T22:05:09",
+    "slug":"site-name",
+    "type":"settings",
+    "title":"Site Name",
+    "content":"ReactPress"
+  },
+  {
+    "id":992,
+    "date":"2016-01-09T22:05:09",
+    "modified":"2016-01-09T22:05:09",
+    "slug":"site-description",
+    "type":"settings",
+    "title":"Site Description",
+    "content":"A JS Front & Back End"
+  }
+]

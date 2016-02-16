@@ -14,7 +14,8 @@ module.exports = {
           presets: ['es2015', 'react']
         }
       }
-    ]
+    ],
+    noParse: /node_modules\/quill\/dist/
   },
   historyApiFallback: {
     index: '/'

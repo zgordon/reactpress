@@ -1,18 +1,53 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Router, Route, Link, browserHistory } from 'react-router'
+import { Router, Route, IndexRoute, Link, browserHistory } from 'react-router'
 import marked from 'marked';
+import ReactQuill from 'react-quill';
 import _ from 'underscore';
 import $ from 'jquery';
 
 window.onload = function () {
 
+var View = React.createClass({
+  // Get the this.props.params (get the router)
+  //
+  componentDidMount: function() {
+
+    // Get the current post and set
+  },
+  componentDidUpdate: function() {
+    // May need to call here as well
+  },
+  render: function() {
+    return (
+      <section id="view">
+      <div className="container">
+          <ViewHeader
+          currentPost={this.props.currentPost}
+        />
+        <ViewMainNav
+          mainMenuItems={this.props.mainMenu}
+        />
+        <ViewContent
+          currentPost={this.props.currentPost}
+        />
+        <ViewFooter />
+      </div>
+    </section>
+    );
+  }
+});
+
 var ViewHeader = React.createClass({
   render: function() {
     return (
       <header className="page-header">
-        <h1 id="siteName"><a href="/">{}</a></h1>
-        <h2 id="siteDesription">{this.props.description}</h2>
+        <h1 id="siteName">
+          <Link to="/">
+            ReactPress
+          </Link>
+        </h1>
+        <h2 id="siteDesription">A Decoupled JS and WP Site</h2>
       </header>
     );
   }
@@ -32,12 +67,9 @@ var ViewMainNavLink = React.createClass({
       if( slug === 'home' ) slug = '/';
       return (
         <li key={this.props.post.id}>
-          <a
-            href={slug}
-            onClick={this.handleLink}
-          >
+          <Link to={slug}>
             {this.props.post.title}
-          </a>
+          </Link>
         </li>
       );
   }
@@ -54,27 +86,38 @@ var ViewMainNav = React.createClass({
 
   },
   render: function(){
+    // assign this.props to variables before running through loop
     var menuItems = this.props.mainMenuItems.filter( function( menuItem ) {
       return menuItem.parent === 0;
     });
-    console.log( menuItems );
     menuItems = this.props.mainMenuItems.map( function( menuItem ) {
       return (
         <ViewMainNavLink
           parent={menuItem.parent}
           key={menuItem.id}
           post={menuItem}
-          onClick={this.props.onClick}
         />
       );
     });
     return (
       <nav id="mainNav">
         <ul>
-          {menuItems}
+          <li>
+            <Link to="/">Home</Link>
+            <Link to="/about">About</Link>
+            <Link to="/blog">Blog</Link>
+            <Link to="/contact">Contact</Link>
+          </li>
         </ul>
       </nav>
     );
+    // return (
+    //   <nav id="mainNav">
+    //     <ul>
+    //       {menuItems}
+    //     </ul>
+    //   </nav>
+    // );
   }
 });
 
@@ -92,25 +135,26 @@ var ViewSidebar = React.createClass({
 });
 
 var ViewContent = React.createClass({
+  //{/*{this.props.currentPost.title.rendered}*/}
+  //   {/*<div
+  //     id="pageContent"
+  //     dangerouslySetInnerHTML={{ __html: this.props.currentPost.content.rendered}}
+  //   />
+  //   </div>*/}
   render: function() {
-    var currentPost = this.props.currentPost[0];
-    if ( !_.isUndefined( currentPost ) ) {
-      return (
-        <div className="content">
-          <div className="primary">
-            <h2 id="pageTitle" key="title">{currentPost.title.rendered}</h2>
-            <div
-              id="pageContent"
-              dangerouslySetInnerHTML={{ __html: currentPost.content.rendered}}
-            />
-          </div>
-
-          <ViewSidebar />
+    return (
+      <div className="content">
+        <div className="primary">
+          <h2 id="pageTitle" key="title">
+            Title
+          </h2>
+            <div id="pageContent">
+              Content
+            </div>
         </div>
-      )
-    } else {
-      return null;
-    }
+        <ViewSidebar />
+      </div>
+    );
   }
 });
 
@@ -211,6 +255,9 @@ var AdminDeletePost = React.createClass({
 });
 
 var AdminNavView = React.createClass({
+  updateText: function() {
+
+  },
   render: function() {
     if( this.props.currentMenu === 'edit' ) {
       return (
@@ -218,11 +265,21 @@ var AdminNavView = React.createClass({
           <ul>
             <li>
               <label htmlFor="editTitle">Title</label>
-              <input type="text" className="editTitle" id="editTitle" />
+              {/*<input
+                type="text"
+                className="editTitle"
+                id="editTitle"
+                value={this.props.currentPost.title.rendered}
+              />*/}
             </li>
             <li>
               <label htmlFor="editContent">Content</label>
-              <textarea name="editContent" id="editContent"></textarea>
+              {/*<ReactQuill
+                name="editContent"
+                id="editContent"
+                value={this.props.currentPost.content.rendered}
+                onChange="{this.updateText}"
+              />*/}
             </li>
             <li>
                 <button
@@ -283,6 +340,7 @@ var Admin = React.createClass({
             currentMenu={this.state.currentMenu}
           />
           <AdminNavView
+            currentPost={this.props.currentPost}
             currentMenu={this.state.currentMenu}
             data={this.props.posts}
           />
@@ -319,7 +377,6 @@ var ReactPress = React.createClass({
       cache: false,
       success: function(data) {
         this.setState({mainMenu: data.items});
-        console.log( 'loadMenuFromAPI: state set' );
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
@@ -334,7 +391,6 @@ var ReactPress = React.createClass({
       cache: false,
       success: function(data) {
         this.setState({pages: data});
-        console.log( 'loadPagesFromAPI: state set' );
         var currentSlug = this.props.params.slug;
         if ( _.isUndefined( currentSlug ) ) currentSlug = 'home';
         var currentPost = _.filter( data, function( page ) {
@@ -342,7 +398,6 @@ var ReactPress = React.createClass({
         });
         if ( !_.isEmpty( currentPost[0] ) ) {
           this.setState( { currentPost: currentPost } );
-          console.log( 'loadPagesFromAPI: state set' );
         }
       }.bind(this),
       error: function(xhr, status, err) {
@@ -358,7 +413,6 @@ var ReactPress = React.createClass({
       cache: false,
       success: function(posts) {
         this.setState({posts: posts});
-        console.log( 'loadPostsFromAPI: state set' );
         var currentSlug = this.props.params.slug;
         var currentPost = _.filter( posts, function( post ) {
             return post.slug == currentSlug;
@@ -385,8 +439,6 @@ var ReactPress = React.createClass({
           return post.slug === slug;
       });
     }
-    console.log( 'setCurrentPost: set state' );
-    //console.log( newPost[0].title.rendered );
   },
 
   getInitialState: function() {
@@ -394,7 +446,7 @@ var ReactPress = React.createClass({
       posts: [],
       pages: [],
       mainMenu: [],
-      hidden: false,
+      hidden: true,
       currentPost: {}
     };
   },
@@ -413,8 +465,9 @@ var ReactPress = React.createClass({
 
   componentDidUpdate: function() {
     var newSlug = this.props.params.slug;
-    this.setCurrentPost( newSlug );
+
     if ( !_.isEmpty( this.state.currentPost ) ) {
+      this.setCurrentPost( newSlug );
     }
   },
 
@@ -428,48 +481,60 @@ var ReactPress = React.createClass({
 
   handleAdminToggle: function() {
       this.setState( { hidden : !this.state.hidden } );
-      console.log( 'handleAdminToggle: state set' );
   },
 
   render: function() {
-    return (
-      <section id="wrapper">
-        <Admin
-          posts={this.state.posts}
-          pages={this.state.pages}
-          isHidden={this.state.hidden}
-          currentSlug={this.props.params.slug}
-        />
-        <section id="view">
+    let currentPost = this.state.currentPost,
+        mainMenu = this.state.mainMenu;
+    if ( !_.isUndefined( currentPost[0] )  ) {
+      let childrenWithProps = React.Children.map(this.props.children, (child) => {
+        return React.cloneElement(child, {
+          currentPost: currentPost[0],
+          mainMenu: mainMenu,
+          setNewPost: this.setCurrentPost
+        });
+      });
+      return (
+        <section id="wrapper">
+          <Admin
+            posts={this.state.posts}
+            pages={this.state.pages}
+            isHidden={this.state.hidden}
+            currentPost={currentPost[0]}
+          />
+
+          <section id="view">
           <div className="container">
-            <ViewHeader
-              currentPost={this.state.currentPost}
+              <ViewHeader
+              currentPost={currentPost[0]}
             />
             <ViewMainNav
               mainMenuItems={this.state.mainMenu}
-              onClick={this.handleMainNavClick}
             />
-            <ViewContent
-              currentPost={this.state.currentPost}
-              currentSlug={this.props.params.slug}
-            />
+            {this.props.children}
             <ViewFooter />
           </div>
         </section>
-        <AdminToggle
-          isHidden={this.state.hidden}
-          onClick={this.handleAdminToggle}
-        />
-      </section>
-    );
+
+          {/*{childrenWithProps}*/}
+          <AdminToggle
+            isHidden={this.state.hidden}
+            onClick={this.handleAdminToggle}
+          />
+        </section>
+      );
+    } else {
+      return null;
+    }
   }
 
 });
 ReactDOM.render(
   <Router >
     <Route path="/" component={ReactPress}>
-      <Route path="blog/:slug" component={ReactPress} />
-      <Route path=":slug" component={ReactPress} />
+      <IndexRoute component={ViewContent}/>
+      <Route path="blog/:slug" component={ViewContent} />
+      <Route path=":slug" component={ViewContent} />
     </Route>
   </Router>,
   document.getElementById('reactpress')
