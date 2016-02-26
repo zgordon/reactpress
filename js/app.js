@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, Link, browserHistory } from 'react-router'
 import marked from 'marked';
@@ -8,8 +8,8 @@ import $ from 'jquery';
 
 window.onload = function () {
 
-var ViewHeader = React.createClass({
-  render: function() {
+class ViewHeader extends Component {
+  render() {
     return (
       <header className="page-header">
         <h1 id="siteName">
@@ -21,11 +21,11 @@ var ViewHeader = React.createClass({
       </header>
     );
   }
-});
+}
 
-var ViewMainNavLink = React.createClass({
+class ViewMainNavLink extends Component {
 
-  render: function() {
+  render() {
     var slug = _.filter(
       this.props.post.url.split('/'),
       function(url) {
@@ -46,11 +46,18 @@ var ViewMainNavLink = React.createClass({
         </li>
       );
   }
-});
+}
 
-var ViewMainNav = React.createClass({
+class ViewMainNav extends Component {
 
-  returnSlugs: function( url ) {
+  constructor () {
+    super();
+    this.state = {
+      mainMenuItems: []
+    };
+  }
+
+  returnSlugs ( url ) {
     if ( url !== '' &&
          url !== 'http:' &&
          url !== 'www.example.dev'
@@ -58,9 +65,9 @@ var ViewMainNav = React.createClass({
         return url
     }
 
-  },
+  }
 
-  loadMenuFromAPI: function() {
+  loadMenuFromAPI () {
     $.ajax({
       url: 'http://www.example.dev/wp-json/wp-api-menus/v2/menus/2',
       dataType: 'json',
@@ -72,19 +79,13 @@ var ViewMainNav = React.createClass({
         console.error(this.props.url, status, err.toString());
       }.bind(this)
     });
-  },
+  }
 
-  getInitialState: function() {
-    return {
-      mainMenuItems: []
-    };
-  },
-
-  componentDidMount: function() {
+  componentDidMount() {
     this.loadMenuFromAPI();
-  },
+  }
 
-  render: function(){
+  render(){
     // assign this.props to variables before running through loop
     var menuItems = this.state.mainMenuItems.filter( function( menuItem ) {
       return menuItem.parent === 0;
@@ -106,10 +107,11 @@ var ViewMainNav = React.createClass({
       </nav>
     );
   }
-});
 
-var ViewSidebar = React.createClass({
-  render: function() {
+}
+
+class ViewSidebar extends Component {
+  render() {
     return (
       <div className="sidebar">
         <h3>Hi!</h3>
@@ -119,12 +121,13 @@ var ViewSidebar = React.createClass({
       </div>
     );
   }
-});
+};
 
-var ViewContent = React.createClass({
+class ViewContent extends Component {
 
-  getInitialState: function() {
-    return {
+  constructor () {
+    super();
+    this.state = {
       posts: [],
       pages: [],
       currentPost: {
@@ -136,10 +139,10 @@ var ViewContent = React.createClass({
         }
       }
     };
-  },
+  }
 
 
-  loadContentFromAPI: function() {
+  loadContentFromAPI() {
 
     const postsUrl = 'http://www.example.dev/wp-json/wp/v2/posts',
           pagesUrl = 'http://www.example.dev/wp-json/wp/v2/pages';
@@ -170,9 +173,9 @@ var ViewContent = React.createClass({
 
     }.bind(this));
 
-  },
+  }
 
-  setCurrentPost: function( slug ) {
+  setCurrentPost ( slug ) {
     let newPost = {};
 
     if ( _.isEmpty( slug ) ) {
@@ -194,17 +197,17 @@ var ViewContent = React.createClass({
     if( !_.isEmpty( newPost[0] ) ) {
       this.setState( { currentPost : newPost[0] } );
     }
-  },
+  }
 
-  componentDidMount: function() {
+  componentDidMount () {
     this.loadContentFromAPI();
-  },
+  }
 
-  componentDidUpdate: function() {
+  componentDidUpdate () {
     this.setCurrentPost( this.props.params.slug );
-  },
+  }
 
-  render: function() {
+  render () {
     var postMarkup = null,
         posts = this.state.posts;
 
@@ -227,10 +230,10 @@ var ViewContent = React.createClass({
       </div>
     );
   }
-});
+}
 
-var ViewBlogPostExcerpt = React.createClass({
-  render: function() {
+class ViewBlogPostExcerpt extends Component {
+  render() {
     return (
       <article>
         <h3>
@@ -244,10 +247,10 @@ var ViewBlogPostExcerpt = React.createClass({
       </article>
     );
   }
-});
+}
 
-var ViewBlogPosts = React.createClass({
-  render: function() {
+class ViewBlogPosts extends Component {
+  render () {
     var postMarkup;
 
     postMarkup = _.map( this.props.posts, function( post ) {
@@ -265,10 +268,10 @@ var ViewBlogPosts = React.createClass({
         </section>
     );
   }
-});
+}
 
-var ViewContentContent = React.createClass({
-  render: function() {
+class ViewContentContent extends Component {
+  render() {
     return (
       <div
         id="pageContent"
@@ -276,40 +279,40 @@ var ViewContentContent = React.createClass({
       />
     );
   }
-});
+}
 
-var ViewContentTitle = React.createClass({
-  render: function() {
+class ViewContentTitle extends Component {
+  render() {
     return (
       <h2 id="pageTitle" key="title">
         {this.props.title}
       </h2>
     );
   }
-});
+}
 
-var ViewFooter = React.createClass({
-  render: function() {
+class ViewFooter extends Component {
+  render() {
     return (
       <div className="footer">
         <p>Made with JavaScript &hearts;</p>
       </div>
     );
   }
-});
+}
 
-var AdminNewPostBtn = React.createClass({
-  render: function() {
+class AdminNewPostBtn  extends Component {
+  render() {
     return (
       <span id="addNew">
         <a href="#">+</a>
       </span>
     );
   }
-});
+}
 
-var AdminListingLink = React.createClass({
-  render: function() {
+class AdminListingLink  extends Component {
+  render() {
     if ( this.props.post.type === 'post' ) {
       return (
         <li>
@@ -328,10 +331,10 @@ var AdminListingLink = React.createClass({
       );
     }
   }
-});
+}
 
-var AdminSecondaryNavLink = React.createClass({
-  render: function() {
+class AdminSecondaryNavLink  extends Component {
+  render() {
     if( this.props.currentMenu === 'edit' ) {
       return (
         <span>
@@ -347,20 +350,20 @@ var AdminSecondaryNavLink = React.createClass({
       );
     }
   }
-});
+}
 
-var AdminHomeLink = React.createClass({
-  render: function() {
+class AdminHomeLink extends Component {
+  render() {
     return (
       <Link to='/' className="go-home">
         Admin
       </Link>
     );
   }
-});
+}
 
-var AdminMenu = React.createClass({
-  render: function() {
+class AdminMenu extends Component {
+  render() {
     return (
       <h3>
         <AdminHomeLink />
@@ -369,10 +372,10 @@ var AdminMenu = React.createClass({
       </h3>
     );
   }
-});
+}
 
-var AdminDeletePost = React.createClass({
-  render: function() {
+class AdminDeletePost  extends Component {
+  render() {
     return (
       <p id="deletePost">
         <a
@@ -382,13 +385,13 @@ var AdminDeletePost = React.createClass({
       </p>
     );
   }
-});
+}
 
-var AdminNavView = React.createClass({
-  updateText: function() {
+class AdminNavView extends Component {
+  updateText () {
 
-  },
-  render: function() {
+  }
+  render() {
     if( this.props.currentMenu === 'edit' ) {
       return (
         <form>
@@ -449,16 +452,17 @@ var AdminNavView = React.createClass({
       );
     }
   }
-});
+}
 
 
-var Admin = React.createClass({
-  getInitialState: function() {
-    return (
-        {currentMenu: 'edit'}
-    );
-  },
-  render: function() {
+class Admin  extends Component {
+  constructor () {
+    super();
+    this.state = {
+      currentMenu: 'edit'
+    };
+  }
+  render() {
     return (
       <section id="editor" className={this.props.isHidden ? "hidden" : ""}>
         <h1>ReactPress</h1>
@@ -479,11 +483,11 @@ var Admin = React.createClass({
       </section>
     );
   }
-});
+}
 
-var AdminToggle = React.createClass({
+class AdminToggle extends Component {
 
-  render: function() {
+  render() {
     return (
       <div id="editorToggle" className={this.props.isHidden ? "hidden" :""}>
         <a
@@ -496,17 +500,17 @@ var AdminToggle = React.createClass({
       </div>
     );
   }
-});
+}
 
-var ReactPress = React.createClass({
-
-  getInitialState: function() {
-    return {
-      hidden: true
+class ReactPress  extends Component {
+  constructor () {
+    super();
+    this.state = {
+        hidden: true
     };
-  },
+  }
 
-  componentDidMount: function() {
+  componentDidMount() {
     // var slug = this.props.params.slug;
     // this.loadPostsFromAPI();
     // this.loadPagesFromAPI();
@@ -516,29 +520,29 @@ var ReactPress = React.createClass({
     //   this.loadPostsFromAPI,
     //   this.props.pollInterval
     // );
-  },
+  }
 
-  componentDidUpdate: function() {
+  componentDidUpdate() {
     // var newSlug = this.props.params.slug;
     //
     // if ( !_.isEmpty( this.state.currentPost ) ) {
     //   this.setCurrentPost( newSlug );
     // }
-  },
+  }
 
-  handleMainNavClick: function( event ) {
+  handleMainNavClick( event ) {
     event.preventDefault();
     this.refs.userInput.getDOMNode().value = '';
     this.context.router.transitionTo('/');
     this.setCurrentPost( newSlug );
-  },
+  }
 
 
-  handleAdminToggle: function() {
+  handleAdminToggle() {
       this.setState( { hidden : !this.state.hidden } );
-  },
+  }
 
-  render: function() {
+  render() {
 
       // <Admin
       //   posts={this.state.posts}
@@ -573,7 +577,8 @@ var ReactPress = React.createClass({
 
   }
 
-});
+}
+
 ReactDOM.render(
   <Router >
     <Route path="/" component={ReactPress}>
