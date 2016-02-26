@@ -8,7 +8,6 @@ import $ from 'jquery';
 
 window.onload = function () {
 
-
 var ViewHeader = React.createClass({
   render: function() {
     return (
