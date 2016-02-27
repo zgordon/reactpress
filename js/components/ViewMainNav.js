@@ -1,5 +1,12 @@
 import React, { Component } from 'react';
-import $ from 'jquery';
+import ViewMainNavLink from './ViewMainNavLink';
+import _ from 'underscore';
+
+const pages = require('../../api/pages.js');
+const menuItems = _.map(pages, (page) => {
+  page.parent = 0;
+  return page;
+})
 
 export default class ViewMainNav extends Component {
 
@@ -21,6 +28,8 @@ export default class ViewMainNav extends Component {
   }
 
   loadMenuFromAPI () {
+    this.setState({mainMenuItems: menuItems});
+    /*
     $.ajax({
       url: 'http://www.example.dev/wp-json/wp-api-menus/v2/menus/2',
       dataType: 'json',
@@ -32,6 +41,7 @@ export default class ViewMainNav extends Component {
         console.error(this.props.url, status, err.toString());
       }.bind(this)
     });
+    */
   }
 
   componentDidMount() {

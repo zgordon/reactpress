@@ -3,6 +3,7 @@ import ViewContentTitle from './ViewContentTitle';
 import ViewContentContent from './ViewContentContent';
 import ViewSidebar from './ViewSidebar';
 import $ from 'jquery';
+import _ from 'underscore';
 
 export default class ViewContent extends Component {
 
