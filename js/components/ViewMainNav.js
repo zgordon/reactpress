@@ -1,22 +1,21 @@
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import ViewMainNavLink from './ViewMainNavLink';
+import { connect } from 'react-redux';
+import { loadMenu } from '../actions/menu';
 import _ from 'underscore';
 
-const pages = require('../../api/pages.js');
-const menuItems = _.map(pages, (page) => {
-  page.parent = 0;
-  return page;
-})
 
-export default class ViewMainNav extends Component {
-
-  constructor () {
-    super();
-    this.state = {
-      mainMenuItems: []
-    };
-  }
-
+@connect(
+  state => ({
+    menuItems: state.menu
+  }),
+  { loadMenu }
+)
+class ViewMainNav extends Component {
+  static propTypes = {
+    menuItems: PropTypes.object,
+    loadMenu: PropTypes.func.isRequired
+  };
   returnSlugs ( url ) {
     if ( url !== '' &&
          url !== 'http:' &&
@@ -27,41 +26,24 @@ export default class ViewMainNav extends Component {
 
   }
 
-  loadMenuFromAPI () {
-    this.setState({mainMenuItems: menuItems});
-    /*
-    $.ajax({
-      url: 'http://www.example.dev/wp-json/wp-api-menus/v2/menus/2',
-      dataType: 'json',
-      cache: false,
-      success: function(data) {
-        this.setState({mainMenuItems: data.items});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-    */
-  }
-
   componentDidMount() {
-    this.loadMenuFromAPI();
+    if(!this.props.menuItems || this.props.menuItems.length === 0){
+      this.props.loadMenu();
+    }
   }
 
   render(){
-    // assign this.props to variables before running through loop
-    var menuItems = this.state.mainMenuItems.filter( function( menuItem ) {
-      return menuItem.parent === 0;
-    });
-    menuItems = menuItems.map( function( menuItem ) {
-      return (
-        <ViewMainNavLink
-          parent={menuItem.parent}
-          key={menuItem.id}
-          post={menuItem}
-        />
-      );
-    });
+    const menuItems = this.props.menuItems
+      .filter((item) => item.parent === 0)
+      .map(( menuItem ) => {
+        return (
+          <ViewMainNavLink
+            parent={menuItem.parent}
+            key={menuItem.id}
+            post={menuItem}
+          />
+        );
+      }).toArray();
     return (
       <nav id="mainNav">
         <ul>
@@ -72,3 +54,4 @@ export default class ViewMainNav extends Component {
   }
 
 }
+export default ViewMainNav;

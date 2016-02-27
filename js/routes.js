@@ -1,7 +1,7 @@
 import React from 'react';
 import { Route, Router, Redirect, IndexRoute} from 'react-router';
 import { createHashHistory } from 'history'
-import { syncReduxAndRouter } from 'react-router-redux'
+import { syncHistoryWithStore } from 'react-router-redux'
 
 import ReactPress from './components/ReactPress';
 import ViewContent from './components/ViewContent';
@@ -10,7 +10,7 @@ import ViewContent from './components/ViewContent';
 
 export default function Routes(store){
   const history = createHashHistory();
-  syncReduxAndRouter(history, store);
+  syncHistoryWithStore(history, store);
   return (
     <Router history={history}>
       <Route path="/" component={ReactPress}>

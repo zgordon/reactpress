@@ -1,14 +1,14 @@
 import { Map } from 'immutable';
-import { PAGES_LOADED } from '../actions/pages';
+import { MENU_LOADED } from '../actions/menu';
 import _ from 'underscore';
 
 
 export default function locations(state = new Map(), action) {
   switch (action.type) {
-    case PAGES_LOADED:
-    const pages = action.data;
+    case MENU_LOADED:
+    const menuItems = action.data;
     return state.withMutations((d) => {
-            _.forEach(pages, (p) => {
+            _.forEach(menuItems, (p) => {
               d.set(p.id, p);
             })
             return d;
