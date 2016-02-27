@@ -4,7 +4,8 @@
   "description": "A simple front and back for WordPress built in React",
   "main": "bundle.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server --hot --inline --history-api-fallback"
   },
   "author": "Zac Gordon @zgordon",
   "license": "ISC",
