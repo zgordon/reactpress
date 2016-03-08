@@ -1,4 +1,5 @@
 module.exports = {
+  devtool: 'source-map',
   entry: './js/app.js',
   output: {
     path: __dirname,
@@ -7,11 +8,12 @@ module.exports = {
   module: {
     loaders: [
       {
-        test: /.jsx?$/,
+        test: /\.(js|jsx)$/,
         loader: 'babel',
         exclude: /node_modules/,
         query: {
-          presets: ['es2015', 'react']
+          presets: ['es2015', 'react', 'stage-0'],
+          plugins: ['babel-plugin-transform-decorators-legacy']
         }
       }
     ],
